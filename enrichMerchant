@@ -1,0 +1,84 @@
+import sqlite3, csv
+
+liste_marchand_to_map = [
+    "IKEA",
+    "AUCHAN",
+    "AMAZON",
+    "CARREFOUR",
+    "EASYJET",
+    "FNAC",
+    "FNAC.COM",
+    "BRICODEPOT",
+    "DECATHLON",
+    "LEROY MERLIN",
+    "GEANT",
+    "SNCF",
+    "IKEA",
+    "H & M",
+    "BETCLIC",
+    "MONOPRIX",
+    "ZARA",
+    "PAYPAL",
+    "AUCHAN",
+    "BOULANGER",
+    "EUROPCAR",
+    "AIR FRANCE",
+    "APPLE",
+    "BATA",
+    "LAFAYETTE",
+    "NOVOTEL",
+    "BRICORAMA",
+    "ARMAND THIERY",
+    "CDISCOUNT",
+    "SAINT MACLOU",
+    "INTERMARCHE",
+    "BOUYGUES",
+    "SUPER U",
+    "HERTZ",
+    "AIR BERLIN",
+    "LECLERC",
+    "VENTE PRIVEE",
+    "TRUFFAUT",
+    "RUEDUCOMMERCE",
+    "TOYS R US",
+    "SPARTOO",
+    "TOPSHOP",
+]
+
+def associateMerchant():
+    conn = sqlite3.connect('OperationDB.db')
+    c = conn.cursor()
+    sql = 'SELECT distinct(libelleCourt) from OPERATIONS ORDER BY libelleCourt ASC'
+    c.execute(sql)
+    libelleCourtList = c.fetchall()
+    for val in libelleCourtList:
+        val = val[0]
+        val_upper = val.upper()
+        if any(marchand in val_upper for marchand in liste_marchand_to_map):
+            result = [marchand in val_upper for marchand in liste_marchand_to_map]
+            marchand = liste_marchand_to_map[result.index(True)]
+            updateMarchand(c,marchand,val)
+    conn.commit()
+    conn.close()
+
+def updateMarchand(cursor, marchand, libelleCourt):
+        sql = "UPDATE OPERATIONS SET marchand='"+ marchand + "' WHERE libelleCourt='" + libelleCourt + "';"
+        cursor.execute(sql)
+
+
+
+def loadMarchand():
+    con = sqlite3.connect("operationDB.db")
+    cur = con.cursor()
+    cur.execute("CREATE TABLE if not exists MARCHANDS (marchand, marchand_sav, marchand_category);") # use your column names here
+    with open('marchands.csv') as fin: # `with` statement available in 2.5+
+        # csv.DictReader uses first line in file for column headings by default
+        reader = csv.reader(fin, delimiter=';' ) # comma is default delimiter
+        for field in reader:
+            print(field)
+            cur.execute("INSERT INTO MARCHANDS VALUES (?,?,?);", field)
+    con.commit()
+    con.close()
+
+associateMerchant()
+#loadMarchand()
